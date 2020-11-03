@@ -8,11 +8,11 @@ import nltk
 # nltk.download('punkt')
 
 import requests
-# import multiprocessing
+import multiprocessing
 #beautiful soup is a noteworthy API to try
 
 #SQL
-import pyodbc
+# import pyodbc
 from sqlalchemy import event, create_engine
 from collections import defaultdict
 
@@ -312,9 +312,3 @@ class scraper(object):
             begin = date_util(date_util(begin) + dt.timedelta(days=1))
         
         return None   
-
-
-# s = scraper(search_terms = ['GE stock news']) #init
-# s.make_df() #creates df, access with s.df
-# s.df
-
