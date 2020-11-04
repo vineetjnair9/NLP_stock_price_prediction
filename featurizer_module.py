@@ -104,3 +104,26 @@ class Featurizer(object):
         X_test = pd.DataFrame(data=X_test.toarray(), columns= self.tfidf.get_feature_names())
         
         return X_test
+
+stopset = set(stopwords.words('english'))        
+def preprocess(input_str):
+    """removes punctuation and digits
+    for the given input string."""
+    
+    input_str = input_str.lower()
+    
+    #fastest way to remove/replace characters in python
+    digits_table = str.maketrans('', '', string.digits)
+    punct_table = str.maketrans('', '', string.punctuation)
+    
+    
+    #can add more tables for future reference
+
+    tables = [digits_table, punct_table]
+    for t in tables:
+        input_str = input_str.translate(t)
+
+    #handling stopwords
+    input_str = ' '.join([word for word in input_str.split() if word not in stopset])
+    
+    return input_str
