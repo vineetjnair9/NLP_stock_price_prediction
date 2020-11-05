@@ -1,5 +1,6 @@
 
 from import_my_packages import * 
+from datetime import timedelta
 
 def get_daily_historical_stock_price_specific_statement(ticker, start_date, end_date, info_type):
   url_to_open = 'https://finance.yahoo.com/quote/' + ticker + '/'+ info_type + '?p=' + ticker
@@ -136,6 +137,7 @@ def get_Fama_French_Factors(ticker, start_date, end_date):
   return(CAPM, FF3, FF5)
 
 def get_vix_index(start_date, end_date):
+  end_date = end_date + timedelta(1)
   vix_data = yf.download("^VIX", start=start_date, end=end_date)
   df = pd.DataFrame(vix_data.loc[start_date:end_date])
   df.drop("Volume", inplace = True, axis = 1)
@@ -191,3 +193,49 @@ def create_numeric_training_data(ticker, start_date, end_date):
   return(merged_df)
 
 
+
+
+def create_numeric_training_data(ticker, start_date, end_date):
+  ### Historic Stock Prices ###
+  historic_stock_prices = get_historic_stock_prices(ticker, start_date, end_date)
+
+  # ### VIX ###
+  vix_df = get_vix_index(start_date, end_date)
+
+  # ### Composite - Dow, Nasdaq, S&P ###
+  composite_df = get_composite_indices(start_date, end_date)
+
+  # ### Financial Statements ###
+  # income_statement_df, balance_sheet_df, cash_flow_statement_df = get_daily_historical_stock_price(ticker, start_date, end_date)
+
+  ### Fama French ###
+  fama_french_df_big = pd.DataFrame(columns = ['capm_intercept', 'capm_MKT', 
+                                           'ff3_intercept', 'ff3_mkt', 'ff3_smb', 
+                                           'ff5_intercept', 'ff5_mkt', 'ff5_smb', 'ff5_HML', 'ff5_RMW'])
+  # early_start_date = datetime.datetime(2018, 10, 30)
+  early_start_date = datetime(2018, 10, 30)
+
+  day_count = (end_date - start_date).days + 1
+  n = 0
+  for end_single_date in historic_stock_prices.index:
+    fama_french_factors_CAPM, fama_french_factors_FF3, fama_french_factors_FF5 = get_Fama_French_Factors(ticker, early_start_date, end_single_date)
+    fama_french_df = pd.DataFrame([[historic_stock_prices.index[n], fama_french_factors_CAPM[0], fama_french_factors_CAPM[1], 
+                                  fama_french_factors_FF3[0],fama_french_factors_FF3[1], fama_french_factors_FF3[2], 
+                                  fama_french_factors_FF5[0], fama_french_factors_FF5[1], fama_french_factors_FF5[2], fama_french_factors_FF5[3], fama_french_factors_FF5[4]]], 
+                                columns = ['Date_Column','capm_intercept', 'capm_MKT', 
+                                           'ff3_intercept', 'ff3_mkt', 'ff3_smb', 
+                                           'ff5_intercept', 'ff5_mkt', 'ff5_smb', 'ff5_HML', 'ff5_RMW'])
+    fama_french_df_big = fama_french_df_big.append(fama_french_df)
+    n += 1
+  print(fama_french_df_big)
+
+  ### Merge ###
+  merged_df = pd.merge(historic_stock_prices,vix_df, how='outer', left_index=True, right_index=True)
+  merged_df = pd.merge(merged_df,composite_df, how='outer', left_index=True, right_index=True)
+  merged_df['Date_Column'] = merged_df.index
+  merged_df = pd.merge(merged_df, fama_french_df_big, how='outer',left_on = 'Date_Column', right_on = 'Date_Column')#, right_on = 'Date_Column')# left_index=True, right_index=True)
+  merged_df['TARGET'] = merged_df['STOCK_PRICE_Open'].copy().shift(-1)
+
+  merged_df.dropna(inplace = True, axis = 0)
+  merged_df = merged_df.set_index('Date_Column')
+  return(merged_df)

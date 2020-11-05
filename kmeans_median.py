@@ -23,15 +23,16 @@ home_directory = os.getcwd()
 ticker = 'AMZN'
 start_date = datetime(2019, 10, 30)
 start_date_string = "10/30/2019" #2019/10/30"
-end_date = datetime(2019, 11,5)
+end_date = datetime(2019, 11,15)
 end_date_string = "11/05/2019" #2019/11/5"
 
 
-get_numeric_data = 0
+get_numeric_data = 1
 get_articles_data = 0
 
 if get_numeric_data == 1:
-	training_numeric_df = create_numeric_training_data(ticker, start_date, end_date)
+    training_numeric_df = create_numeric_training_data(ticker, start_date, end_date)
+    training_numeric_df.to_csv(home_directory + "/numeric_training_data_" + ticker + "_" + "_".join(start_date_string.split("/")) + "_" + "_".join(end_date_string.split("/"))  + ".csv") 
 
 if get_articles_data == 1:
 	s = scraper(search_terms = ['MSFT'], date_from = start_date_string, date_to = end_date_string) #init
