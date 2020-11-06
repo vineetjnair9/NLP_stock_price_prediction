@@ -20,12 +20,15 @@ tick_size = 30
 home_directory = os.getcwd()
 
 
+#------------------------------------## SPECIFY SETTINGS ##------------------------------------#
+
 ticker = 'AMZN'
 start_date = datetime(2019, 10, 30)
-start_date_string = "10/30/2019" #2019/10/30"
-end_date = datetime(2019, 11,15)
-end_date_string = "11/05/2019" #2019/11/5"
+start_date_string = str(start_date.month) + "/" + str(start_date.day) + "/" + str(start_date.year) 
+end_date = datetime(2020, 10,30)
+end_date_string = str(end_date.month) + "/" + str(end_date.day) + "/" + str(end_date.year) 
 
+#------------------------------------## BEGIN ##------------------------------------#
 
 get_numeric_data = 1
 get_articles_data = 0
