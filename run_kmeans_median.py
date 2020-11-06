@@ -1,7 +1,7 @@
-from scraper_module import *
-from get_financial_data import * 
+from module_scraper import *
+from module_numericFinancialData import * 
 from import_my_packages import * 
-from featurizer_module import *
+from module_featurizer import *
 from sklearn.metrics import silhouette_samples
 import matplotlib.cm as cm
 # from sklearn_extra.cluster import KMedoids
