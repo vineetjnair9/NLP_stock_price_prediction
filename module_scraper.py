@@ -66,6 +66,7 @@ class scraper(object):
         self.search_info = None
         self.data = None
         self.df = None
+        self.final_df = pd.DataFrame()
     
         #dbs and date scraped, for the write_sql method
         self.dbs = []
@@ -200,7 +201,8 @@ class scraper(object):
                 tmp['date'] = self.date_to 
                 tmp['core_search_term'] = rel_str #to handle keys appropriately
                 tmp['link'] = info['link'] 
-                
+                tmp['title'] = info['title']
+            
                 #process the link, use try clause in case failure to process
                 a = self.process_link(tmp['link'])
                 try:
@@ -252,44 +254,13 @@ class scraper(object):
         
         return None
     
-    def write_sql(self, db_name):
-        #change this, remove exists ect...
-        """creates SQL table in internship server.
-           Will only work once make_df() has been called.
-        
-            Args:
-                db_name :: str
-                    name of the database
-        """
-        
-        if self.df is None:
-            print('no data: call make_df() first')
-            return None
-    
-        else:
-            server = None
-            sql_engine = create_engine(server)
-            
-            if db_name in self.dbs:
-                self.df.to_sql(db_name, sql_engine, if_exists = 'append')
-                print('appended to database {}'.format())
-               
-            else:
-                self.df.to_sql(db_name, sql_engine)
-                print('created new database {}'.format(db_name))
-                self.dbs.append(db_name)
-            
-        return None
-    
-    def scrape_period(db_name, begin, end):
+    def scrape_period(self, begin, end):
         """scrape news for entire period, from begin to
         (including) end, for all search terms provided. Handles
         dates previously scraped for a given scraper instance.
         
         Args:
-            db_name :: str
-                name of the database to create/append to
-            
+
             begin, end :: str
                 date string in format MM/DD/YYYY    
         """
@@ -304,7 +275,7 @@ class scraper(object):
                 
                 #obtain data
                 self.make_df()
-                self.write_sql(db_name)
+                self.final_df = self.final_df.append(self.df)
                 
                 #add to scraped dates
                 self.dates_scraped.add(begin)
@@ -313,4 +284,11 @@ class scraper(object):
         
         return None
 
-#test   
+# #example of using scrape_period
+
+# #making scraper class
+# s = scraper(search_terms=['GE stock news'])
+# #setting date range to scrape/takes roughly 25 seconds per date
+# s.scrape_period('10/01/2020', '10/02/2020')
+# #all results
+# s.final_df
