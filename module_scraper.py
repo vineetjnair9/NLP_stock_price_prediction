@@ -311,4 +311,6 @@ class scraper(object):
             #increment date by one day
             begin = date_util(date_util(begin) + dt.timedelta(days=1))
         
-        return None   
+        return None
+
+#test   
