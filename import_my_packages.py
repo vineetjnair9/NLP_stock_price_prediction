@@ -22,7 +22,7 @@ from sklearn.cluster import KMeans
 from matplotlib import colors as mcolors
 import seaborn
 import seaborn as sns
-from gurobipy import Model,GRB
+# from gurobipy import Model,GRB
 import os
 import datetime
 import calendar
@@ -35,14 +35,14 @@ import pandasql
 import ssl
 import certifi
 ssl._create_default_https_context = ssl._create_unverified_context # accept all URL access
-warnings.filterwarnings("ignore", category=RuntimeWarning) 
+warnings.filterwarnings("ignore", category=RuntimeWarning)
 import statistics
 from pandas.plotting import register_matplotlib_converters
 from statsmodels.graphics.tsaplots import plot_acf
 import statsmodels.api as sm
 from statsmodels.tsa.arima_model import ARIMA
 from lmfit.models import StepModel, LinearModel
-from striprtf.striprtf import rtf_to_text 
+from striprtf.striprtf import rtf_to_text
 from scipy.optimize import curve_fit
 from mpl_toolkits.mplot3d import Axes3D
 import re
@@ -53,9 +53,9 @@ from statsmodels.nonparametric.kernel_regression import KernelReg
 from statsmodels.tsa.api import ExponentialSmoothing, SimpleExpSmoothing, Holt
 register_matplotlib_converters()
 from scipy.optimize import fsolve
-from sympy import * 
+from sympy import *
 from scipy.optimize import root
-pd.options.mode.chained_assignment = None 
+pd.options.mode.chained_assignment = None
 from matplotlib.ticker import MaxNLocator
 import stargazer
 import yfinance as yf
@@ -69,5 +69,5 @@ import nltk
 import string
 from string import digits
 from sklearn.feature_extraction.text import TfidfVectorizer
-from nltk.corpus import stopwords 
-from nltk.tokenize import word_tokenize 
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
