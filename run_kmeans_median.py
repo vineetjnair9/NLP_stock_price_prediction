@@ -1,6 +1,6 @@
 from module_scraper import *
-from module_numericFinancialData import * 
-from import_my_packages import * 
+from module_numericFinancialData import *
+from import_my_packages import *
 from module_featurizer import *
 from sklearn.metrics import silhouette_samples
 import matplotlib.cm as cm
@@ -18,37 +18,27 @@ tick_size = 30
 ###################################################################
 
 home_directory = os.getcwd()
+import ssl
 
+ssl._create_default_https_context = ssl._create_unverified_context
 
 #------------------------------------## SPECIFY SETTINGS ##------------------------------------#
 
 ticker = 'AMZN'
 start_date = datetime(2019, 10, 30)
-start_date_string = str(start_date.month) + "/" + str(start_date.day) + "/" + str(start_date.year) 
+start_date_string = str(start_date.month) + "/" + str(start_date.day) + "/" + str(start_date.year)
 end_date = datetime(2020, 10,30)
-end_date_string = str(end_date.month) + "/" + str(end_date.day) + "/" + str(end_date.year) 
+end_date_string = str(end_date.month) + "/" + str(end_date.day) + "/" + str(end_date.year)
 
 #------------------------------------## BEGIN ##------------------------------------#
 
-get_numeric_data = 1
-get_articles_data = 0
 
-if get_numeric_data == 1:
-    training_numeric_df = create_numeric_training_data(ticker, start_date, end_date)
-    training_numeric_df.to_csv(home_directory + "/numeric_training_data_" + ticker + "_" + "_".join(start_date_string.split("/")) + "_" + "_".join(end_date_string.split("/"))  + ".csv") 
+get_articles_data = 0
 
 if get_articles_data == 1:
 	s = scraper(search_terms = ['MSFT'], date_from = start_date_string, date_to = end_date_string) #init
 	s.make_df() #creates df, access with s.df
 	s.df.to_csv(home_directory + "/Articles_K_Means/articles_for_kmeans_micro.csv")
-
-
-# I gotta use scrape period. 
-# s.scrape_period
-
-
-# test = pd.DataFrame([["11/05/2020","ge","link"  "CHALFONT ST GILES, England--(BUSINESS WIRE)--T...  General Electric's stock surged" ]], columns = )
-
 
 df = pd.read_csv(home_directory + "/Articles_K_Means/articles_for_kmeans.csv", index_col = 0)
 df2 = pd.read_csv(home_directory + "/Articles_K_Means/articles_for_kmeans_micro.csv", index_col = 0)
@@ -56,9 +46,6 @@ df2 = pd.read_csv(home_directory + "/Articles_K_Means/articles_for_kmeans_micro.
 df = df.append(df2)
 test = pd.DataFrame([["11/05/2020","ge","link",  "some words" ], ["11/05/2020","ge","link2",  "some words 2222222" ]], columns = df.columns)
 df = df.append(test)
-# print(df)
-
-
 
 
 df.drop_duplicates(inplace = True)
@@ -67,90 +54,17 @@ df.reset_index(inplace = True)
 df = df.drop(['index'], axis = 1)
 dates = set(df['date'].copy())
 
-#### NEED TO TOKENIZE AND CLEAN HERE
-df["text"] = df["text"].apply(preprocess)
 print(df)
 
-
-out = ' '.join(df["text"])
-out = preprocess(preprocess(out))
-print(out)
-# out = out.split(" ")
+#### NEED TO TOKENIZE AND CLEAN HERE
+# df["text"] = df["text"].apply(preprocess)
+# print(df)
 
 
-# unique_words = list(set(out))
-# count_list = [out.count(i) for i in unique_words]
-# count_dict = {unique_words[i]: count_list[i] for i in range(len(unique_words))}
-# count_dict = list(count_dict.items())
-# count_dict.sort(key = lambda x: x[1], reverse = True) 
+# out = ' '.join(df["text"])
+# out = preprocess(preprocess(out))
+# print(out)
 
-
-# from collections import Counter
-# import numpy as np
-# import matplotlib.pyplot as plt
-
-
-# counts = dict(Counter(out).most_common(10))
-
-# labels, values = zip(*counts.items())
-
-# # sort your values in descending order
-# indSort = np.argsort(values)[::-1]
-
-# # rearrange your data
-# labels = np.array(labels)[indSort]
-# values = np.array(values)[indSort]
-
-# indexes = np.arange(len(labels))
-
-# bar_width = 0.35
-
-# plt.bar(indexes, values)
-
-# # add labels
-# plt.xticks(indexes + bar_width, labels)
-# plt.show()
-
-
-
-from wordcloud import WordCloud
-# Generate word cloud
-wordcloud = WordCloud(width = 3000, height = 2000, random_state=1, background_color='salmon', colormap='Pastel1', collocations=False).generate(out)
-# Plot
-plot_cloud(wordcloud)
-
-
-
-fig = plt.figure(figsize = (40,22))
-plt.plot([c[1] for c in count_dict ], linewidth = 3, color = 'orangered' )
-plt.title("Word Frequency Plot", fontdict = font_dict)
-plt.xlabel("Word", fontdict = font_dict)
-plt.ylabel("Number of Instances", fontdict = font_dict)
-ax = plt.gca()
-labels = [item.get_text() for item in ax.get_xticklabels()]
-print(labels)
-for i in range(len(labels)):
-    labels[i] = count_dict[i][0]
-ax.set_xticklabels(labels)
-plt.xticks(rotation = 90)
-plt.xticks(fontsize = tick_size, fontname = font_dict['family'])
-plt.yticks(fontsize = tick_size, fontname = font_dict['family'])
-fig.savefig(home_directory + "/Articles_K_Means/Figures/WordFreqPlot.jpg", bbox_inches="tight")
-plt.close()
-
-print([c[0] for c in count_dict])
-# fig = plt.figure(figsize = (10,4))
-# plt.gcf().subplots_adjust(bottom=0.15) # to avoid x-ticks cut-off
-
-# fd = nltk.FreqDist(nltk.tokenize.word_tokenize(out))
-# fd.plot(100,cumulative=False)
-# plt.figure(figsize=(20, 8))
-# plt.title("Word Frequency", fontdict = font_dict)
-# plt.xticks(fontsize = tick_size, fontname = font_dict['family'])
-# plt.yticks(fontsize = tick_size, fontname = font_dict['family'])
-# plt.tight_layout()
-# fig.savefig(home_directory + "/Articles_K_Means/Figures/WordFreqPlot.jpg", bbox_inches="tight")
-# plt.close()
 
 
 f = Featurizer()
@@ -161,6 +75,8 @@ print(df)
 f = Featurizer()
 for a in df['text']:
     f.preprocess(a)
+print(df)
+
 
 # f.preprocess(df['text'])
 
@@ -337,284 +253,3 @@ if kmeans == 1:
 
 
 
-
-
-# from sklearn.decomposition import PCA
-
-# def init_medoids(X, k):
-#     from numpy.random import choice
-#     from numpy.random import seed
- 
-#     seed(1)
-#     samples = choice(len(X), size=k, replace=False)
-#     return X[samples, :]
-
-
-
-# def compute_d_p(X, medoids, p):
-#     m = len(X)
-#     medoids_shape = medoids.shape
-#     # If a 1-D array is provided, 
-#     # it will be reshaped to a single row 2-D array
-#     if len(medoids_shape) == 1: 
-#         medoids = medoids.reshape((1,len(medoids)))
-#     k = len(medoids)
-#     S = np.empty((m, k))
-#     for i in range(m):
-#         d_i = np.linalg.norm(X[i, :] - medoids, ord=p, axis=1)
-#         S[i, :] = d_i**p
-#     return S
-
-
-# def has_converged(old_medoids, medoids):
-#     return set([tuple(x) for x in old_medoids]) == set([tuple(x) for x in medoids])
-  
-# #Full algorithm
-# def kmedoids(X, k, p, starting_medoids=None, max_steps=np.inf):
-#     if starting_medoids is None:
-#         medoids = init_medoids(X, k)
-#     else:
-#         medoids = starting_medoids
-        
-#     converged = False
-#     labels = np.zeros(len(X))
-#     i = 1
-#     while (not converged) and (i <= max_steps):
-#         old_medoids = medoids.copy()
-        
-#         S = compute_d_p(X, medoids, p)
-        
-#         labels = assign_labels(S)
-        
-#         medoids = update_medoids(X, medoids, p)
-        
-#         converged = has_converged(old_medoids, medoids)
-#         i += 1
-#     return (medoids,labels)
-
-
-
-
-
-
-
-# KMEDIAN
-# import pandas as pd
-# import numpy as np
-# import matplotlib.pyplot as plt
-# from mpl_toolkits.mplot3d import Axes3D
-# from sklearn import datasets
-# from sklearn.decomposition import PCA
-
-# Dataset
-# iris = datasets.load_iris()
-# data = pd.DataFrame(iris.data,columns = iris.feature_names)
-
-# target = iris.target_names
-# labels = iris.target
-
-# #Scaling
-# from sklearn.preprocessing import MinMaxScaler
-# scaler = MinMaxScaler()
-# data = pd.DataFrame(scaler.fit_transform(data), columns=data.columns)
-
-# #PCA Transformation
-# from sklearn.decomposition import PCA
-# pca = PCA(n_components=3)
-# principalComponents = pca.fit_transform(data)
-# PCAdf = pd.DataFrame(data = principalComponents , columns = ['principal component 1', 'principal component 2','principal component 3'])
-
-# datapoints = PCAdf.values
-# m, f = datapoints.shape
-# k = 3
-
-# #Visualization
-# fig = plt.figure(1, figsize=(8, 6))
-# ax = Axes3D(fig, elev=-150, azim=110)
-# X_reduced = points
-# ax.scatter(X_reduced[:, 0], X_reduced[:, 1], X_reduced[:, 2], c=labels,
-#            cmap=plt.cm.Set1, edgecolor='k', s=40)
-# ax.set_title("First three PCA directions")
-# ax.set_xlabel("principal component 1")
-# ax.w_xaxis.set_ticklabels([])
-# ax.set_ylabel("principal component 1")
-# ax.w_yaxis.set_ticklabels([])
-# ax.set_zlabel("principal component 1")
-# ax.w_zaxis.set_ticklabels([])
-# plt.show()
-
-# def init_medoids(X, k):
-#     from numpy.random import choice
-#     from numpy.random import seed
- 
-#     seed(1)
-#     samples = choice(len(X), size=k, replace=False)
-#     return X[samples, :]
-
-# # medoids_initial = init_medoids(datapoints, 3)
-
-# def compute_d_p(X, medoids, p):
-#     m = len(X)
-#     medoids_shape = medoids.shape
-#     # If a 1-D array is provided, 
-#     # it will be reshaped to a single row 2-D array
-#     if len(medoids_shape) == 1: 
-#         medoids = medoids.reshape((1,len(medoids)))
-#     k = len(medoids)
-    
-#     S = np.empty((m, k))
-    
-#     for i in range(m):
-#         d_i = np.linalg.norm(X[i, :] - medoids, ord=p, axis=1)
-#         S[i, :] = d_i**p
-
-#     return S
-  
-# # S = compute_d_p(datapoints, medoids_initial, 2)
-
-
-# def assign_labels(S):
-#     return np.argmin(S, axis=1)
-  
-# # labels = assign_labels(S)
-
-# def update_medoids(X, medoids, p):
-    
-#     S = compute_d_p(datapoints, medoids, p)
-#     labels = assign_labels(S)
-        
-#     out_medoids = medoids
-                
-#     for i in set(labels):
-        
-#         avg_dissimilarity = np.sum(compute_d_p(datapoints, medoids[i], p))
-
-#         cluster_points = datapoints[labels == i]
-        
-#         for datap in cluster_points:
-#             new_medoid = datap
-#             new_dissimilarity= np.sum(compute_d_p(datapoints, datap, p))
-            
-#             if new_dissimilarity < avg_dissimilarity :
-#                 avg_dissimilarity = new_dissimilarity
-                
-#                 out_medoids[i] = datap
-                
-#     return out_medoids
-
-# def has_converged(old_medoids, medoids):
-#     return set([tuple(x) for x in old_medoids]) == set([tuple(x) for x in medoids])
-  
-# #Full algorithm
-# def kmedoids(X, k, p, starting_medoids=None, max_steps=np.inf):
-#     if starting_medoids is None:
-#         medoids = init_medoids(X, k)
-#     else:
-#         medoids = starting_medoids
-        
-#     converged = False
-#     labels = np.zeros(len(X))
-#     i = 1
-#     while (not converged) and (i <= max_steps):
-#         old_medoids = medoids.copy()
-        
-#         S = compute_d_p(X, medoids, p)
-        
-#         labels = assign_labels(S)
-        
-#         medoids = update_medoids(X, medoids, p)
-        
-#         converged = has_converged(old_medoids, medoids)
-#         i += 1
-#     return (medoids,labels)
-
-# #Count
-# def mark_matches(a, b, exact=False):
-#     """
-#     Given two Numpy arrays of {0, 1} labels, returns a new boolean
-#     array indicating at which locations the input arrays have the
-#     same label (i.e., the corresponding entry is True).
-    
-#     This function can consider "inexact" matches. That is, if `exact`
-#     is False, then the function will assume the {0, 1} labels may be
-#     regarded as the same up to a swapping of the labels. This feature
-#     allows
-    
-#       a == [0, 0, 1, 1, 0, 1, 1]
-#       b == [1, 1, 0, 0, 1, 0, 0]
-      
-#     to be regarded as equal. (That is, use `exact=False` when you
-#     only care about "relative" labeling.)
-#     """
-#     assert a.shape == b.shape
-#     a_int = a.astype(dtype=int)
-#     b_int = b.astype(dtype=int)
-#     all_axes = tuple(range(len(a.shape)))
-#     assert ((a_int == 0) | (a_int == 1) | (a_int == 2)).all()
-#     assert ((b_int == 0) | (b_int == 1) | (b_int == 2)).all()
-    
-#     exact_matches = (a_int == b_int)
-#     if exact:
-#         return exact_matches
-
-#     assert exact == False
-#     num_exact_matches = np.sum(exact_matches)
-#     if (2*num_exact_matches) >= np.prod (a.shape):
-#         return exact_matches
-#     return exact_matches == False # Invert
-
-# def count_matches(a, b, exact=False):
-#     """
-#     Given two sets of {0, 1} labels, returns the number of mismatches.
-    
-#     This function can consider "inexact" matches. That is, if `exact`
-#     is False, then the function will assume the {0, 1} labels may be
-#     regarded as similar up to a swapping of the labels. This feature
-#     allows
-    
-#       a == [0, 0, 1, 1, 0, 1, 1]
-#       b == [1, 1, 0, 0, 1, 0, 0]
-      
-#     to be regarded as equal. (That is, use `exact=False` when you
-#     only care about "relative" labeling.)
-#     """
-#     matches = mark_matches(a, b, exact=exact)
-#     return np.sum(matches)
-
-
-
-# def get_df_index_of_spcific_row(numpydf, mediods):
-#     numpylist = numpydf.tolist()
-#     print(numpylist)
-#     indices = []
-#     for i in range(len(mediods)):
-#         print(mediods[i].tolist())
-#         print("\n" + str(numpylist.index(mediods[i].tolist())))
-#         indices.append(numpylist.index(mediods[i].tolist()))
-#     return(indices)
-
-# num_clusters = 6
-
-# doc_matrix = np.round_(doc_matrix, decimals = 6)
-# doc_matrix = doc_matrix * 1000000
-# doc_matrix = doc_matrix.astype(int)
-# print(doc_matrix)
-# initial_medoids = doc_matrix[0:num_clusters]
-# initial_medoids = initial_medoids.to_numpy()
-# doc_matrix_df = doc_matrix.copy()
-# doc_matrix = doc_matrix.to_numpy()
-
-
-
-# data= doc_matrix_df.copy()
-
-# datapoints= doc_matrix
-# results = kmedoids(doc_matrix, 3, 2, starting_medoids = initial_medoids)
-# mediods = results[0]
-# assignment_vector = results[1]
-# print("mediods")
-# print(mediods)
-
-# indices = get_df_index_of_spcific_row(doc_matrix, mediods)
-
-# print(indices)
