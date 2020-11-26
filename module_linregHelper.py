@@ -20,13 +20,28 @@ font_dict_legend = {'size' : 20, 'family': 'serif'}
 tick_size = 30
 ###################################################################
 
-def mape(target, fit):
-    # target = target['TARGET'].tolist()
+def sse(target, fit, round_digits = 5):
+    target = target.tolist()
+    fit = list(fit)
+    x = sum([(target[i] - fit[i])**2 for i in range(len(target))])
+    x = round(x, round_digits)
+    return(x) 
+
+
+def mse(target, fit, round_digits = 5):
+    target = target.tolist()
+    fit = list(fit)
+    x = statistics.mean([(target[i] - fit[i])**2 for i in range(len(target))])
+    x = round(x, round_digits)
+    return(x) 
+
+
+def mape(target, fit, round_digits = 5):
     target = target.tolist()
 
     fit = list(fit)
     x = statistics.mean([100 * (abs(target[i] - fit[i])/target[i]) for i in range(len(target))])
-    x = round(x, 5)
+    x = round(x, round_digits)
     return(x) # returns MAPE as a PERCENT
 
 
@@ -38,16 +53,31 @@ def vif(df):
     return(vif_data)
 
 
-def correlation_plot(X, text_extention, home_directory):
+
+def plot_regularization_hyperparameters(l1_wts_to_test, hyperparameters_results, home_directory, ticker):
+    fig = plt.figure(figsize = (20,12))
+    plt.plot(l1_wts_to_test, hyperparameters_results, linewidth = 5, markersize = 20, color = 'orangered')
+    plt.title("Hyperparameter Tuning - Regularization", fontdict = font_dict)
+    plt.xlabel("l1wt Value", fontdict = font_dict)
+    plt.ylabel("Validation MSE", fontdict = font_dict)
+    plt.xticks(fontsize = tick_size, fontname = font_dict['family'])
+    plt.yticks(fontsize = tick_size, fontname = font_dict['family'])
+    fig.savefig(home_directory + "/LinReg_Results/Figures/" + ticker + "_L1_WTS_Parameter_Validation_Results.jpg", bbox_inches="tight")
+
+
+
+def correlation_plot(X, text_extention, home_directory, ticker):
     corr = X.corr(method='pearson') 
     fig, ax = plt.subplots(figsize=(30,30))
     sns.heatmap(corr, annot=True, xticklabels=corr.columns, 
             yticklabels=corr.columns, ax=ax, linewidths=.5, 
             vmin = -1, vmax=1, center=0, square = False)
     plt.title('Correlation HeatMap for ALL DATA')
-    fig.savefig(home_directory + "/LinReg_Results/Figures/Correlation_Test_" + text_extention + ".jpg", bbox_inches="tight")
+    fig.savefig(home_directory + "/LinReg_Results/Figures/" + ticker + "_Correlation_Test_" + text_extention + ".jpg", bbox_inches="tight")
 
-def linreg_Plots(true_y, fitted_y, residuals, text_extension, home_directory):
+
+
+def linreg_Plots(true_y, fitted_y, residuals, text_extension, home_directory, ticker):
     fig = plt.figure(figsize = (20,12))
     plt.scatter(fitted_y, residuals, s = 100)
     plt.title("Residuals vs. Fit - " + text_extension, fontdict = font_dict)
@@ -56,7 +86,7 @@ def linreg_Plots(true_y, fitted_y, residuals, text_extension, home_directory):
     plt.xticks(fontsize = tick_size, fontname = font_dict['family'])
     plt.yticks(fontsize = tick_size, fontname = font_dict['family'])
     plt.axhline(y=0,color='gray',linestyle='--', linewidth = 3)
-    fig.savefig(home_directory + "/LinReg_Results/Figures/Linear_Regression_Numeric_" + text_extension + "_Residuals_vs_Fitted.jpg", bbox_inches="tight")
+    fig.savefig(home_directory + "/LinReg_Results/Figures/" + ticker + "_Linear_Regression_Numeric_" + text_extension + "_Residuals_vs_Fitted.jpg", bbox_inches="tight")
 
 
 
@@ -68,7 +98,7 @@ def linreg_Plots(true_y, fitted_y, residuals, text_extension, home_directory):
     plt.xticks(fontsize = tick_size, fontname = font_dict['family'])
     plt.yticks(fontsize = tick_size, fontname = font_dict['family'])
     plt.axhline(y=0,color='gray',linestyle='--', linewidth = 3)
-    fig.savefig(home_directory + "/LinReg_Results/Figures/Linear_Regression_Numeric_" + text_extension + "_Residuals_vs_Target.jpg", bbox_inches="tight")
+    fig.savefig(home_directory + "/LinReg_Results/Figures/" + ticker + "_Linear_Regression_Numeric_" + text_extension + "_Residuals_vs_Target.jpg", bbox_inches="tight")
 
 
     fig = plt.figure(figsize = (20,20))
@@ -87,5 +117,28 @@ def linreg_Plots(true_y, fitted_y, residuals, text_extension, home_directory):
     ax.set_aspect('equal')
     ax.set_xlim(lims)
     ax.set_ylim(lims)
-    fig.savefig(home_directory + "/LinReg_Results/Figures/Linear_Regression_Numeric_" + text_extension + "_Fitted_vs_Target.jpg", bbox_inches="tight")
+    fig.savefig(home_directory + "/LinReg_Results/Figures/" + ticker + "_Linear_Regression_Numeric_" + text_extension + "_Fitted_vs_Target.jpg", bbox_inches="tight")
+
+    fig = plt.figure(figsize = (20,12))
+    plt.hist(true_y, bins= 20)
+    plt.title("Histogram of True Target Values - " + text_extension, fontdict = font_dict)
+    plt.xlabel("Target Values", fontdict = font_dict)
+    plt.ylabel("Frequency", fontdict = font_dict)
+    plt.xticks(fontsize = tick_size, fontname = font_dict['family'])
+    plt.yticks(fontsize = tick_size, fontname = font_dict['family'])
+    plt.axhline(y=0,color='gray',linestyle='--', linewidth = 3)
+    fig.savefig(home_directory + "/LinReg_Results/Figures/" + ticker + "_Linear_Regression_Numeric_" + text_extension + "_Histogram_of_True_Target_Values.jpg", bbox_inches="tight")
+
+
+    fig = plt.figure(figsize = (20,12))
+    plt.hist(residuals, bins= 20)
+    plt.title("Histogram of Residuals - " + text_extension, fontdict = font_dict)
+    plt.xlabel("Regression Residuals", fontdict = font_dict)
+    plt.ylabel("Frequency", fontdict = font_dict)
+    plt.xticks(fontsize = tick_size, fontname = font_dict['family'])
+    plt.yticks(fontsize = tick_size, fontname = font_dict['family'])
+    plt.axhline(y=0,color='gray',linestyle='--', linewidth = 3)
+    fig.savefig(home_directory + "/LinReg_Results/Figures/" + ticker + "_Linear_Regression_Numeric_" + text_extension + "_Histogram_of_Regression_Residuals.jpg", bbox_inches="tight")
+
+
 
