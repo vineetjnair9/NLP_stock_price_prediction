@@ -26,9 +26,12 @@ home_directory = os.getcwd()
 
 # ticker = 'AMZN'
 ticker_vec = ["AMZN", "GE", "T", "PFE", "GS"]
+ticker_vec = ["AMZN"]
+
 rounding_digits = 10
 regularized = False
 
+number_iterations = 10
 #------------------------------------## GET RELEVANT NUMERIC DATA ##------------------------------------#
 def main(type_of_data_arg, ticker, home_directory):
     print("\n")
@@ -38,12 +41,13 @@ def main(type_of_data_arg, ticker, home_directory):
     
     X = pd.read_csv(home_directory + "/DataCSVs/" + type_of_data_arg + "_training_data_" + ticker + "_9_30_2012_9_30_2020.csv", index_col = 0) 
    
-    print("Entire X DF:")
-    print(X)
+    # print("Entire X DF:")
+    # print(X)
 
 
     #------------------------------------## PLOT CORRELATION MATRIX FOR ALL DATA ##------------------------------------#
-    correlation_plot(X, "ALL_DATA", home_directory, ticker)
+    if len(X.columns) < 20:
+        correlation_plot(X, "ALL_DATA", home_directory, ticker)
 
     #------------------------------------## CALCULATE VARIANCE INFLATION FACTORS ##------------------------------------#
     print("Printing VIF for ALL Features:")
@@ -65,80 +69,96 @@ def main(type_of_data_arg, ticker, home_directory):
 
 
     #------------------------------------## PLOT CORRELATION MATRIX FOR TRUE DATA ##------------------------------------#
-    correlation_plot(X, "ACTUAL_DATA", home_directory, ticker)
+    if len(X.columns) < 20:
+        correlation_plot(X, "ACTUAL_DATA", home_directory, ticker)
 
     #------------------------------------## CALCULATE VARIANCE INFLATION FACTORS ##------------------------------------#
     print("Printing VIF for TRUE DF:")
     print(vif(X))
     print("\n")
 
-    ### TEST TRAIN SPLIT ###
-    print("Doing a test/train split.\n")
-    train_X, test_X, train_Y, test_Y = train_test_split(X, y, test_size=0.20)#, random_state=42)
-    train_X, val_X, train_Y, val_Y = train_test_split(train_X, train_Y, test_size=0.10)#, random_state=42)
+    training_adj_r_squared = []
+    testing_adj_r_squared = []
+    training_mse_list = []
+    testing_mse_list = []
+    for i in range(number_iterations):
+
+
+        ### TEST TRAIN SPLIT ###
+        print("Doing a test/train split.\n")
+        train_X, test_X, train_Y, test_Y = train_test_split(X, y, test_size=0.20)#, random_state=42)
+        train_X, val_X, train_Y, val_Y = train_test_split(train_X, train_Y, test_size=0.10)#, random_state=42)
 
 
 
-    #------------------------------------## FIT OLS ON TRAINING DF ###------------------------------------###
-    ols_model = sm.OLS(train_Y, train_X)
+        #------------------------------------## FIT OLS ON TRAINING DF ###------------------------------------###
+        ols_model = sm.OLS(train_Y, train_X)
 
-    if regularized == False:
-        model_fit = ols_model.fit()
-        print(model_fit.summary())
-        train_fitted_Y = model_fit.predict(train_X)
-        train_model_residuals = model_fit.resid
+        if regularized == False:
+            model_fit = ols_model.fit()
+            print(model_fit.summary())
+            train_fitted_Y = model_fit.predict(train_X)
+            train_model_residuals = model_fit.resid
 
-    elif regularized == True:
-        hyperparameters_results = []
-        l1_wts_to_test = np.linspace(.0001, .999, 20)
-        for i in l1_wts_to_test:
-            print("i is: " + str(i))
-            model_fit = ols_model.fit_regularized(L1_wt=i, refit= False)
-            val_fitted_Y = model_fit.predict(val_X)
-            validation_mse = mse(val_Y, val_fitted_Y, rounding_digits)
-            hyperparameters_results.append(validation_mse)
-            # train_fitted_Y = model_fit.predict(train_X)
-            # train_mse = mse(train_Y, train_fitted_Y, rounding_digits)
-            # hyperparameters_results.append(train_mse)
-
-
-        print("\n\n\n")
-        print(hyperparameters_results)
-        plot_regularization_hyperparameters(l1_wts_to_test, hyperparameters_results, home_directory, ticker)
+        elif regularized == True:
+            hyperparameters_results = []
+            l1_wts_to_test = np.linspace(.0001, .999, 20)
+            for i in l1_wts_to_test:
+                print("i is: " + str(i))
+                model_fit = ols_model.fit_regularized(L1_wt=i, refit= False)
+                val_fitted_Y = model_fit.predict(val_X)
+                validation_mse = mse(val_Y, val_fitted_Y, rounding_digits)
+                hyperparameters_results.append(validation_mse)
+                # train_fitted_Y = model_fit.predict(train_X)
+                # train_mse = mse(train_Y, train_fitted_Y, rounding_digits)
+                # hyperparameters_results.append(train_mse)
 
 
-
-    print("Printing TRAINING RESULTS: \n")
-
-    #------------------------------------## CALCULATE FIT AND PLOT RESULTS ###------------------------------------###
-    training_r_squared = model_fit.rsquared
-    print("TRAINING R-Squared: " + str(round(training_r_squared, rounding_digits)))
-    # training_sse = sse(train_Y, train_fitted_Y, rounding_digits)
-    # print("TRAINING SSE: " + str(training_sse))
-    training_mse = mse(train_Y, train_fitted_Y, rounding_digits)
-    print("TRAINING MSE: " + str(training_mse))
-
-
-    print("\n")
-
-    linreg_Plots(train_Y, train_fitted_Y, train_model_residuals, "TRAIN_" + type_of_data_arg, home_directory, ticker)
+            print("\n\n\n")
+            print(hyperparameters_results)
+            plot_regularization_hyperparameters(l1_wts_to_test, hyperparameters_results, home_directory, ticker)
 
 
 
-    #------------------------------------## TESTING MODEL ##------------------------------------#
-    fitted_test_Y = model_fit.predict(test_X)
-    resid_test_Y = np.array([test_Y[i] - fitted_test_Y[i] for i in range(len(test_Y))])
+        print("Printing TRAINING RESULTS: \n")
+
+        #------------------------------------## CALCULATE FIT AND PLOT RESULTS ###------------------------------------###
+        training_r_squared = model_fit.rsquared_adj
+        print("TRAINING Adjusted R-Squared: " + str(round(training_r_squared, rounding_digits)))
+        # training_sse = sse(train_Y, train_fitted_Y, rounding_digits)
+        # print("TRAINING SSE: " + str(training_sse))
+        training_mse = mse(train_Y, train_fitted_Y, rounding_digits)
+        print("TRAINING MSE: " + str(training_mse))
+
+        training_adj_r_squared.append(training_r_squared)
+        training_mse_list.append(training_mse)
+    
 
 
-    #------------------------------------## CALCULATE FIT AND PLOT RESULTS ###------------------------------------###
-    testing_rsquared = test_Y.corr(fitted_test_Y)**2
-    print("TESTING R-Squared: " + str(round(testing_rsquared, rounding_digits)))
-    # testing_sse = sse(test_Y, fitted_test_Y, rounding_digits)
-    # print("TESTING SSE: " + str(testing_sse))
-    testing_mse = mse(test_Y, fitted_test_Y, rounding_digits)
-    print("TESTING MSE: " + str(testing_mse))
+        print("\n")
+
+        linreg_Plots(train_Y, train_fitted_Y, train_model_residuals, "TRAIN_" + type_of_data_arg, home_directory, ticker)
 
 
+
+        #------------------------------------## TESTING MODEL ##------------------------------------#
+        fitted_test_Y = model_fit.predict(test_X)
+        resid_test_Y = np.array([test_Y[i] - fitted_test_Y[i] for i in range(len(test_Y))])
+
+
+        #------------------------------------## CALCULATE FIT AND PLOT RESULTS ###------------------------------------###
+        testing_rsquared = test_Y.corr(fitted_test_Y)**2
+        print("TESTING R-Squared: " + str(round(testing_rsquared, rounding_digits)))
+        # testing_sse = sse(test_Y, fitted_test_Y, rounding_digits)
+        # print("TESTING SSE: " + str(testing_sse))
+        testing_mse = mse(test_Y, fitted_test_Y, rounding_digits)
+        print("TESTING MSE: " + str(testing_mse))
+
+        testing_adj_r_squared.append(testing_rsquared)
+        testing_mse_list.append(testing_mse)
+
+
+    plot_metrics_for_many_iterations(training_adj_r_squared, training_mse_list, testing_mse_list, testing_adj_r_squared, "numeric_and_text", home_directory, ticker)
     linreg_Plots(test_Y, fitted_test_Y, resid_test_Y, "TEST_" + type_of_data_arg, home_directory, ticker)
 
     return([ticker, training_r_squared, training_mse, testing_rsquared, testing_mse])
@@ -149,19 +169,17 @@ if __name__ == "__main__":
 
     for ticker in ticker_vec:
         to_write_numeric_only.append(main("numeric", ticker, home_directory))
-        # to_write_numeric_and_text_only.append(main("numeric_and_text", ticker))       # UNCOMMENT FOR TEXT DATA TOO
+        to_write_numeric_and_text_only.append(main("numeric_and_text", ticker, home_directory))       # UNCOMMENT FOR TEXT DATA TOO
 
 
     with open(home_directory + "/LinReg_Results/" + "numeric.csv", "w") as fileout:
         csvobj = csv.writer(fileout)
         csvobj.writerows(to_write_numeric_only)
-    pp.pprint(to_write_numeric_only)
     
 # UNCOMMENT FOR TEXT DATA TOO
-    # with open(home_directory + "/LinReg_Results/" + "numeric_and_text.csv", "w") as fileout:
-    #     csvobj = csv.writer(fileout)
-    #     csvobj.writerows(to_write_numeric_and_text_only)
-    # pp.pprint(to_write_numeric_and_text_only)
+    with open(home_directory + "/LinReg_Results/" + "numeric_and_text.csv", "w") as fileout:
+        csvobj = csv.writer(fileout)
+        csvobj.writerows(to_write_numeric_and_text_only)
 
 
 

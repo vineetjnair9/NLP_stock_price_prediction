@@ -56,16 +56,6 @@ dates = set(df['date'].copy())
 
 print(df)
 
-#### NEED TO TOKENIZE AND CLEAN HERE
-# df["text"] = df["text"].apply(preprocess)
-# print(df)
-
-
-# out = ' '.join(df["text"])
-# out = preprocess(preprocess(out))
-# print(out)
-
-
 
 f = Featurizer()
 

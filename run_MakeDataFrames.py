@@ -24,6 +24,7 @@ tick_size = 30
 
 
 tickers = ['AMZN', 'GE', 'PFE', 'T', 'GS']
+tickers = ['AMZN']
 
 # tickers = ['AMZN']
 #------------------------------------## SPECIFY SETTINGS ##------------------------------------#
@@ -46,30 +47,24 @@ def main(type_of_data_arg, ticker_ARG):
         training_numeric_df = create_numeric_training_data(ticker_ARG, start_date, end_date)
         training_numeric_df.to_csv(home_directory + "/DataCSVs/" + type_of_data_arg + "_training_data_" + ticker_ARG + "_" + "_".join(start_date_string.split("/")) + "_" + "_".join(end_date_string.split("/"))  + ".csv")
 
+
     elif type_of_data_arg == "numeric_and_text":
 
-        ### Write numeric data ###
-        try: # if file already exists
-            training_numeric_df = pd.read_csv(home_directory + "/DataCSVs/numeric_training_data_" + ticker_ARG + "_" + "_".join(start_date_string.split("/")) + "_" + "_".join(end_date_string.split("/"))  + ".csv", index_col = 0)
-        except:
-            training_numeric_df = create_numeric_training_data(ticker_ARG, start_date, end_date)
-            training_numeric_df.to_csv(home_directory + "/DataCSVs/" + "numeric" + "_training_data_" + ticker_ARG + "_" + "_".join(start_date_string.split("/")) + "_" + "_".join(end_date_string.split("/"))  + ".csv")
-            training_numeric_df = pd.read_csv(home_directory + "/DataCSVs/numeric_training_data_" + ticker_ARG + "_" + "_".join(start_date_string.split("/")) + "_" + "_".join(end_date_string.split("/"))  + ".csv", index_col = 0)
+        ### Read in numeric data ###
+        training_numeric_df = pd.read_csv(home_directory + "/DataCSVs/numeric_training_data_" + ticker_ARG + "_" + "_".join(start_date_string.split("/")) + "_" + "_".join(end_date_string.split("/"))  + ".csv", index_col = 0)
 
-        ### Write text data ###
-        try: # if file already exists
-            training_text_df = pd.read_csv(home_directory + "/DataCSVs/text_training_data_" + ticker_ARG + "_" + "_".join(start_date_string.split("/")) + "_" + "_".join(end_date_string.split("/"))  + ".csv", index_col = 0)
-        except:
-###### NEED TO FIX TEXTUAL FEATURES HERE ####
-            training_text_data = pd.DataFrame([['88888888', '99999999' ] for i in range(len(training_numeric_df.index))], columns = ['textual_feature_1', 'textual_feature_2']) # NEED TO SPECIFY SOME FUNCTION HERE
-            training_text_data.index = training_numeric_df.index
-###### NEED TO FIX TEXTUAL FEATURES HERE ####
-            training_text_data.to_csv(home_directory + "/DataCSVs/" + "text" + "_training_data_" + ticker_ARG + "_" + "_".join(start_date_string.split("/")) + "_" + "_".join(end_date_string.split("/"))  + ".csv")
-            training_text_df = pd.read_csv(home_directory + "/DataCSVs/text_training_data_" + ticker_ARG + "_" + "_".join(start_date_string.split("/")) + "_" + "_".join(end_date_string.split("/"))  + ".csv", index_col = 0)
+        ### Read in text data ###
+        training_text_df = pd.read_csv(home_directory + "/DataCSVs/" + ticker_ARG + "_text_embs.csv", index_col = 0)
+        training_text_df.index = [str(i.split("/")[2] + "-" + i.split("/")[0] + "-" + i.split("/")[1]) for i in training_text_df.index.to_list()]
+        training_text_df = training_text_df.shift(1) # shift down 1 day
+
+
+       
 
         ### Create joint df ###
-        training_numeric_and_text_df = pd.merge(training_numeric_df, training_text_df, how='outer', left_index=True, right_index=True)
-        training_numeric_and_text_df.to_csv(home_directory + "/DataCSVs/" + type_of_data_arg + "_training_data_" + ticker_ARG + "_" + "_".join(start_date_string.split("/")) + "_" + "_".join(end_date_string.split("/"))  + ".csv")
+        training_numeric_and_text_df = pd.merge(training_numeric_df, training_text_df, how='inner', left_index=True, right_index=True)
+        # training_numeric_and_text_df['Date_Columns'] = training_numeric_and_text_df.index
+        training_numeric_and_text_df.to_csv(home_directory + "/DataCSVs/" + type_of_data_arg + "_training_data_" + ticker_ARG + "_" + "_".join(start_date_string.split("/")) + "_" + "_".join(end_date_string.split("/"))  + ".csv", index_label = "Date_Column")
 
 
 
@@ -80,8 +75,8 @@ if __name__ == "__main__":
         # NUMERIC_AND_TEXT
 
     for ticker in tickers:
-        main("numeric", ticker)
-        # main("numeric_and_text", ticker)
+        # main("numeric", ticker)
+        main("numeric_and_text", ticker)
 
 
 
