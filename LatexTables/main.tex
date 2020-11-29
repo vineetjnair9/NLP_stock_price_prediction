@@ -1,0 +1,153 @@
+% -*- Mode:TeX -*-
+
+%% IMPORTANT: The official thesis specifications are available at:
+%%            http://libraries.mit.edu/archives/thesis-specs/
+%%
+%%            Please verify your thesis' formatting and copyright
+%%            assignment before submission.  If you notice any
+%%            discrepancies between these templates and the 
+%%            MIT Libraries' specs, please let us know
+%%            by e-mailing thesis@mit.edu
+
+%% The documentclass options along with the pagestyle can be used to generate
+%% a technical report, a draft copy, or a regular thesis.  You may need to
+%% re-specify the pagestyle after you \include  cover.tex.  For more
+%% information, see the first few lines of mitthesis.cls. 
+
+%\documentclass[12pt,vi,twoside]{mitthesis}
+%%
+%%  If you want your thesis copyright to you instead of MIT, use the
+%%  ``vi'' option, as above.
+%%
+%\documentclass[12pt,twoside,leftblank]{mitthesis}
+%%
+%% If you want blank pages before new chapters to be labelled ``This
+%% Page Intentionally Left Blank'', use the ``leftblank'' option, as
+%% above. 
+
+\documentclass[12pt,twoside]{mitthesis}
+%\nofiles
+
+\PassOptionsToPackage{table,xcdraw}{xcolor}
+
+
+\usepackage{lgrind}
+%% These have been added at the request of the MIT Libraries, because
+%% some PDF conversions mess up the ligatures.  -LB, 1/22/2014
+\usepackage{cmap}
+\usepackage[T1]{fontenc}
+%% Package "lmodern" added by user request see ServiceNow INC0396734 -OT, 4/29/2020
+\usepackage{lmodern}
+
+\usepackage[center]{caption}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage[a4paper, total={7in, 9.5in}]{geometry}
+\usepackage{graphicx}
+\usepackage[section]{placeins}
+%\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{changepage}
+\usepackage{hyperref}
+\usepackage{nomencl}
+%\usepackage{unicode-math}
+\usepackage{amsthm}
+\usepackage{enumitem}  
+\usepackage{calrsfs}
+\usepackage{dutchcal}
+
+
+\usepackage{tabularx,colortbl}
+
+%\usepackage{colortbl}
+%\usepackage{xcolor}
+
+\DeclareMathAlphabet{\pazocal}{OMS}{zplm}{m}{n}
+\SetMathAlphabet\pazocal{bold}{OMS}{zplm}{bx}{n}
+\newcommand{\mth}{\mathcal{A}}
+\newcommand{\pzc}{\pazocal{A}}
+
+\usepackage{tikz}
+\newcommand*\circled[1]{\tikz[baseline=(char.base)]{
+            \node[shape=circle,draw,inner sep=2pt] (char) {#1};}}
+\newcommand\norm[1]{\left\lVert#1\right\rVert}
+\usetikzlibrary{calc,shapes.misc,shapes.geometric}
+\usepackage{array,booktabs}
+
+
+
+
+\newcommand\Mark[2][]{%
+\tikz[baseline=(a.base)]{
+\node[inner sep=0pt,outer sep=0pt](a){\phantom{#2}};  %% just to be defensive
+\node[draw,thick,inner sep=1pt, ellipse,text=black,overlay,minimum width=\widthof{#2},#1]  {#2};%
+}
+}
+
+\newcommand{\colorcell}{\textcolor{red}}
+
+\makeatletter
+\newcommand{\repeatable}[2]{%
+  \label{#1}\global\@namedef{repeatable@#1}{#2}#2
+}
+\newcommand{\eqrepeat}[1]{%
+  \@ifundefined{repeatable@#1}{NOT FOUND}{$\@nameuse{repeatable@#1}$}%
+  ~\eqref{#1}}
+\makeatother
+
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{assumption}{Assumption}
+
+\newtheorem{definition}{Definition}[section]
+\newtheorem{prop}{Proposition}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+
+\usepackage{lipsum}
+\newenvironment{Proof}[1][Proof]
+  {\proof[#1]\leftskip=1cm\rightskip=1cm}
+  {\endproof}
+\newcommand{\floor}[1]{\lfloor #1 \rfloor}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\makenomenclature
+\graphicspath{ {./images/} }
+\allowdisplaybreaks
+\DeclareMathOperator*{\plim}{plim}
+\allowdisplaybreaks
+
+
+\pagestyle{plain}
+
+%% This bit allows you to either specify only the files which you wish to
+%% process, or `all' to process all files which you \include.
+%% Krishna Sethuraman (1990).
+%
+%\typein [\files]{Enter file names to process, (chap1,chap2 ...), or `all' to
+%process all files:}
+%\def\all{all}
+%\ifx\files\all \typeout{Including all files.} \else \typeout{Including only \files.} \includeonly{\files} \fi
+
+\setcounter{tocdepth}{5}
+\setcounter{secnumdepth}{5}
+
+
+\begin{document}
+\include{cover}
+% Some departments (e.g. 5) require an additional signature page.  See
+% signature.tex for more information and uncomment the following line if
+% applicable.
+% \include{signature}
+\pagestyle{plain}
+
+\include{chap1} % tables
+
+\end{document}
+

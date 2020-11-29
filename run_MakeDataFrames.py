@@ -22,13 +22,7 @@ font_dict_legend = {'size' : 20, 'family': 'serif'}
 tick_size = 30
 ###################################################################
 
-
-tickers = ['AMZN', 'GE', 'PFE', 'T', 'GS']
-tickers = ['AMZN']
-
-# tickers = ['AMZN']
 #------------------------------------## SPECIFY SETTINGS ##------------------------------------#
-
 
 start_date = datetime(2012, 9, 30)
 start_date_string = str(start_date.month) + "/" + str(start_date.day) + "/" + str(start_date.year)
@@ -45,6 +39,10 @@ def main(type_of_data_arg, ticker_ARG):
 
     if type_of_data_arg == "numeric":
         training_numeric_df = create_numeric_training_data(ticker_ARG, start_date, end_date)
+        training_numeric_df['Date_Column'] = training_numeric_df.index.to_list()
+        training_numeric_df = training_numeric_df[training_numeric_df['Date_Column'] <= datetime(2019, 12, 31)]
+        training_numeric_df.drop(['Date_Column'], axis = 1, inplace = True)
+
         training_numeric_df.to_csv(home_directory + "/DataCSVs/" + type_of_data_arg + "_training_data_" + ticker_ARG + "_" + "_".join(start_date_string.split("/")) + "_" + "_".join(end_date_string.split("/"))  + ".csv")
 
 
@@ -59,24 +57,43 @@ def main(type_of_data_arg, ticker_ARG):
         training_text_df = training_text_df.shift(1) # shift down 1 day
 
 
-       
-
         ### Create joint df ###
         training_numeric_and_text_df = pd.merge(training_numeric_df, training_text_df, how='inner', left_index=True, right_index=True)
         # training_numeric_and_text_df['Date_Columns'] = training_numeric_and_text_df.index
         training_numeric_and_text_df.to_csv(home_directory + "/DataCSVs/" + type_of_data_arg + "_training_data_" + ticker_ARG + "_" + "_".join(start_date_string.split("/")) + "_" + "_".join(end_date_string.split("/"))  + ".csv", index_label = "Date_Column")
 
 
+    elif type_of_data_arg == "article_embeddings":
+        ### Read in embedding data ###
+        text_df = pd.read_csv(home_directory + "/DataCSVs/" + ticker_ARG + "_text_embs_per_art.csv", index_col = 0)
+        text_df['key'] = text_df['title'] + ", " + text_df['link'] #+ ", " + text_df['text']
+        text_df = text_df.set_index('key')
+        text_df.drop(['link', 'text', 'title', 'core_search_term', 'Unnamed: 0.1', 'id'], axis = 1, inplace = True)
+        text_df.to_csv(home_directory + "/DataCSVs/" + ticker + "_article_TEXT_embeddings.csv")
+
+
+        ### Read in embedding data ###
+        title_df = pd.read_csv(home_directory + "/DataCSVs/" + ticker_ARG + "_title_embs_per_art.csv", index_col = 0)
+        title_df['key'] = title_df['title'] + ", " + title_df['link'] #+ ", " + title_df['text']
+        title_df = title_df.set_index('key')
+        title_df.drop(['link', 'text', 'title', 'core_search_term', 'Unnamed: 0.1', 'id'], axis = 1, inplace = True)
+        title_df.to_csv(home_directory + "/DataCSVs/" + ticker + "_article_TITLE_embeddings.csv")
+
 
 
 if __name__ == "__main__":
+    tickers = sys.argv[1].split(",")
+
+
     ### Possble Choices for arguments to main() are:
         # NUMERIC
         # NUMERIC_AND_TEXT
+        # article_embeddings
 
     for ticker in tickers:
         # main("numeric", ticker)
         main("numeric_and_text", ticker)
+        main("article_embeddings", ticker)
 
 
 

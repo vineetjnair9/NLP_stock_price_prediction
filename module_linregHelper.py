@@ -44,12 +44,14 @@ def mape(target, fit, round_digits = 5):
     x = round(x, round_digits)
     return(x) # returns MAPE as a PERCENT
 
-def percent_change(new, old, r_squared_indicator = 0):
-    if r_squared_indicator == 1:
-        return(round(100 * ((new - old)/abs(old)), 4))
-    else:
-        return(round(100 * ((new - old)/old), 4))
+# def percent_change(new, old, r_squared_indicator = 0):
+#     if r_squared_indicator == 1:
+#         return(round(100 * ((new - old)/abs(old)), 4))
+#     else:
+#         return(round(100 * ((new - old)/old), 4))
 
+def percent_change(new, old, r_squared_indicator = 0):
+    return(round(100 * ((new - old)/old), 4))
 
 def vif(df):
     vif_data = pd.DataFrame() 
@@ -178,4 +180,19 @@ def plot_metrics_for_many_iterations(training_adj_r_squared, training_mse_list, 
     fig.legend(prop=font_dict)
     fig.savefig(home_directory + "/LinReg_Results/Figures/" + ticker + "_Linear_Regression_" + text_extension + "_Cross_Validation.jpg", bbox_inches="tight")
 
+def results_summary_to_dataframe(results):
+    '''take the result of an statsmodel results table and transforms it into a dataframe'''
+    pvals = results.pvalues
+    coeff = results.params
+    conf_lower = results.conf_int()[0]
+    conf_higher = results.conf_int()[1]
 
+    results_df = pd.DataFrame({"pvals":pvals,
+                               "coeff":coeff,
+                               "conf_lower":conf_lower,
+                               "conf_higher":conf_higher
+                                })
+
+    #Reordering...
+    results_df = results_df[["coeff","pvals","conf_lower","conf_higher"]]
+    return results_df

@@ -17,8 +17,8 @@ rm(list=ls()) # clear all current variables
 
 # ticker_vec = c("AMZN", "GE", "T", "PFE", "GS")
 ticker_vec = c("AMZN")
-# ticker = 'AMZN'
-# csv_name_start = "numeric_and_text_training_data_"
+ticker = 'AMZN'
+csv_name_start = "numeric_and_text_training_data_"
 # csv_name_start = "numeric_training_data_"
 
 
@@ -123,7 +123,7 @@ ARIMA_and_REG_Experimentation <- function(ticker, csv_name_start){
   
   
   
-  ##---------------------------------------- Forecasting ----------------------------------------##
+  ##---------------------------------------- Forecasting & Test Fit----------------------------------------##
   num_points_to_forecast = nrow(target_ts_test)
   num_points_to_forecast
   
@@ -189,8 +189,13 @@ ARIMA_and_REG_Experimentation <- function(ticker, csv_name_start){
   summary(linreg)
   FIT_ON_resid_ARIMA_given_by_linreg = linreg$fitted.values # fitted values 
   
+  ### Stepwise Regression ###
+  # library(MASS)
+  # step <- stepAIC(linreg, direction="both")
+  # step$anova # display results
+  # 
   first_index_to_plot = which(!is.na(ts_components$trend),, TRUE)[1]
-  time_series_reconstructed =  subset(ts_components$trend, !is.na(ts_components$trend)) + subset(ts_components$seasonal, !is.na(ts_components$trend)) + as.vector(fitted_random_ARIMA) +  as.vector(FIT_ON_resid_ARIMA_given_by_linreg)
+  time_series_reconstructed =  subset(ts_components$trend, !is.na(ts_components$trend)) + subset(ts_components$seasonal, !is.na(ts_components$trend)) + as.vector(FIT_ON_resid_ARIMA_given_by_linreg) # as.vector(fitted_random_ARIMA) + 
   last_index_to_plot = first_index_to_plot + NROW(time_series_reconstructed)
   
   number_of_indices = last_index_to_plot[1] - first_index_to_plot[1]
@@ -201,10 +206,9 @@ ARIMA_and_REG_Experimentation <- function(ticker, csv_name_start){
   plot(as.vector(target_ts_train), col = 'blue', ylab = "returns", xlab = "time index", main = paste(main, "- Regression on ARIMA Residuals", sep = " "))
   lines(as.vector(target_ts_train), col = 'blue')
   lines(x, time_series_reconstructed, col = "red")
-  legend("topleft", legend=c("Arima with Regression on Residuals - Training Data", "Constructed Time Series - Training"), col=c("red", "green"), lty=1:2, cex=0.8)
+  legend("topleft", legend=c("Arima with Regression on Residuals - Training Data", "Constructed Time Series - Training"), col=c("red", "blue"), lty=1:2, cex=0.8)
   dev.copy(png, paste("ARIMA_PNGs/", ticker, "(7) ", csv_name_start, " - ARIMA Training Fit with Regression on Residuals", ".png", sep = ""))
   dev.off()
-  
   
   
   
@@ -218,10 +222,11 @@ ARIMA_and_REG_Experimentation <- function(ticker, csv_name_start){
   training_arima_and_reg = c(mean(overall_fit_residuals_arima_and_regression_TRAIN^2))
   
   
+  ##---------------------------------------- Test Fit----------------------------------------##
   
   ## Calculate TESTING FIT Residuals on ARIMA Model with Additional Features ###
   pred_reg_on_resid = predict(linreg, target_data_test)
-  FIT = as.vector(constructed_forecast) + as.vector(pred_reg_on_resid)
+  FIT = as.vector(trend_forecast$mean) + as.vector(season_forecast) +  as.vector(pred_reg_on_resid)
   
   # Recomposition of TS
   overall_fit_residuals_arima_and_regression_TEST = as.vector(target_ts_test) - FIT
@@ -253,24 +258,24 @@ ARIMA_and_REG_Experimentation <- function(ticker, csv_name_start){
 
 csv_name_start = "numeric_training_data_"
 results =  matrix( 0, nrow = NROW(ticker_vec)+1, ncol=4+1)
-results[1,] = c("", "TRAINING, ARIMA ONLY", "TRAINING, ARIMA AND REG", "TESTING, ARIMA ONLY", "TESTING, ARIMA AND REG")
+results[1,] = c("", "Training, ARIMA, Numeric", "Training, ARIMA and Regression, Numeric", "Testing, ARIMA, Numeric", "Testing, ARIMA and Regression, Numeric")
 for (i in 1:NROW(ticker_vec)){
   ticker = ticker_vec[i]
   results[i+1,1] = ticker
   results[i+1,2:NCOL(results)] = ARIMA_and_REG_Experimentation(ticker, csv_name_start)
 }
-write.table(results, file = "ARIMA_PNGs/Numeric_Results.csv", sep = ",", col.names = FALSE)
+write.table(results, file = "ARIMA_PNGs/Numeric_Results.csv", sep = ",", col.names = FALSE, row.names=FALSE)
 
 
 csv_name_start = "numeric_and_text_training_data_"
 results =  matrix( 0, nrow = NROW(ticker_vec)+1, ncol=4+1)
-results[1,] = c("", "TRAINING, ARIMA ONLY", "TRAINING, ARIMA AND REG", "TESTING, ARIMA ONLY", "TESTING, ARIMA AND REG")
+results[1,] = c("", "Training, ARIMA, Numeric and Text", "Training, ARIMA and Regression, Numeric and Text", "Testing, ARIMA, Numeric and Text", "Testing, ARIMA and Regression, Numeric and Text")
 for (i in 1:NROW(ticker_vec)){
   ticker = ticker_vec[i]
   results[i+1,1] = ticker
   results[i+1,2:NCOL(results)] = ARIMA_and_REG_Experimentation(ticker, csv_name_start)
 }
-write.table(results, file = "ARIMA_PNGs/Numeric_and_Text_Results.csv", sep = ",", col.names = FALSE)
+write.table(results, file = "ARIMA_PNGs/Numeric_and_Text_Results.csv", sep = ",", col.names = FALSE, row.names=FALSE)
 
 
 
