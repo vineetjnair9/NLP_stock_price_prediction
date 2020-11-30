@@ -44,7 +44,14 @@ def mape(target, fit, round_digits = 5):
     x = round(x, round_digits)
     return(x) # returns MAPE as a PERCENT
 
+# def percent_change(new, old, r_squared_indicator = 0):
+#     if r_squared_indicator == 1:
+#         return(round(100 * ((new - old)/abs(old)), 4))
+#     else:
+#         return(round(100 * ((new - old)/old), 4))
 
+def percent_change(new, old, r_squared_indicator = 0):
+    return(round(100 * ((new - old)/old), 4))
 
 def vif(df):
     vif_data = pd.DataFrame() 
@@ -141,4 +148,51 @@ def linreg_Plots(true_y, fitted_y, residuals, text_extension, home_directory, ti
     fig.savefig(home_directory + "/LinReg_Results/Figures/" + ticker + "_Linear_Regression_Numeric_" + text_extension + "_Histogram_of_Regression_Residuals.jpg", bbox_inches="tight")
 
 
+def plot_metrics_for_many_iterations(training_adj_r_squared, training_mse_list, testing_mse_list, testing_adj_r_squared, text_extension, home_directory, ticker):
+    # fig = plt.figure(figsize = (22,15))
+    labelsize = 20
 
+    fig, ax1 = plt.subplots()
+    plt.title("Cross Validation for " + ticker, fontdict = font_dict)
+    color = 'tab:red'
+    ax1.set_xlabel('Iteration', fontdict = font_dict)
+    ax1.set_ylabel('$R^2$', color=color, fontdict = font_dict)
+    ax1.plot(training_adj_r_squared, label = "Training R^2", markersize = 100, linewidth = 4, linestyle = "dashed", color=color)
+    plt.plot(testing_adj_r_squared, label = "Testing R^2", markersize = 100, linewidth = 4, linestyle = "solid", color=color)
+    ax1.tick_params(axis='y', labelcolor=color)
+    ax1.tick_params(axis='both', which='major', labelsize=labelsize)
+    ax1.tick_params(axis='both', which='minor', labelsize=labelsize)
+    ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+
+    color = 'tab:blue'
+    ax2.set_ylabel('MSE', color=color, fontdict = font_dict)  # we already handled the x-label with ax1
+    ax2.plot(training_mse_list, label = "Training Negative MSE", markersize = 100, linewidth = 4, linestyle = "dashed", color=color)
+    ax2.plot(testing_mse_list, label = "Testing Negative MSE", markersize = 100, linewidth = 4, linestyle = "solid", color=color)
+    ax2.tick_params(axis='y', labelcolor=color)
+
+    ax2.tick_params(axis='both', which='major', labelsize=labelsize)
+    ax2.tick_params(axis='both', which='minor', labelsize=labelsize)
+    fig.tight_layout()  # otherwise the right y-label is slightly clipped
+
+
+    fig = plt.gcf()
+    fig.set_size_inches(40, 25)
+    fig.legend(prop=font_dict)
+    fig.savefig(home_directory + "/LinReg_Results/Figures/" + ticker + "_Linear_Regression_" + text_extension + "_Cross_Validation.jpg", bbox_inches="tight")
+
+def results_summary_to_dataframe(results):
+    '''take the result of an statsmodel results table and transforms it into a dataframe'''
+    pvals = results.pvalues
+    coeff = results.params
+    conf_lower = results.conf_int()[0]
+    conf_higher = results.conf_int()[1]
+
+    results_df = pd.DataFrame({"pvals":pvals,
+                               "coeff":coeff,
+                               "conf_lower":conf_lower,
+                               "conf_higher":conf_higher
+                                })
+
+    #Reordering...
+    results_df = results_df[["coeff","pvals","conf_lower","conf_higher"]]
+    return results_df

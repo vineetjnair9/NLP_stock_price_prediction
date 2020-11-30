@@ -15,15 +15,21 @@ library("TTR")
 
 rm(list=ls()) # clear all current variables 
 
-ticker_vec = c("AMZN", "GE", "T", "PFE", "GS")
+# ticker_vec = c("AMZN", "GE", "T", "PFE", "GS")
+ticker_vec = c("AMZN")
+ticker = 'AMZN'
+csv_name_start = "numeric_and_text_training_data_"
+# csv_name_start = "numeric_training_data_"
+
+
 
 ARIMA_and_REG_Experimentation <- function(ticker, csv_name_start){
-  csv_name_end = "_9_30_2012_9_30_2020"
-  filepath = paste("DataCSVs/", csv_name_start, ticker,csv_name_end , ".csv" , sep = '')
-  filepath
-  data = read.csv(filepath)
-  head(data)
-  
+    csv_name_end = "_9_30_2012_9_30_2020"
+    filepath = paste("DataCSVs/", csv_name_start, ticker, csv_name_end , ".csv" , sep = '')
+    filepath
+    data = read.csv(filepath)
+    head(data)
+    
   data$Date_Column = as.Date(data$Date_Column, format="%Y/%m/%d")
   typeof(data$Date_Column)
   
@@ -37,7 +43,6 @@ ARIMA_and_REG_Experimentation <- function(ticker, csv_name_start){
   start= c(as.numeric(substr(data$Date_Column[1],1,4)), as.numeric(substr(data$Date_Column[1],6,7)), as.numeric(substr(data$Date_Column[1],9,10)))
   end= c(as.numeric(substr(data$Date_Column[nrow(data)],1,4)), as.numeric(substr(data$Date_Column[nrow(data)],6,7)), as.numeric(substr(data$Date_Column[nrow(data)],9,10)))
   
-    # target_ts = as.ts(data['TARGET'], frequency = 365, start = data$Date_Column[1], end = data$Date_Column[nrow(data)])
   target_ts = as.ts(data['TARGET'], frequency = 365, start = start, end =end)
   typeof(target_ts)
   
@@ -56,7 +61,7 @@ ARIMA_and_REG_Experimentation <- function(ticker, csv_name_start){
   ylab = "Return"
   
   plot(target_ts_train, xlab = "Time Index", ylab = ylab, main = main)
-  dev.copy(png, paste("ARIMA_PNGs/", ticker, "(1) ", " - Return_Time_Series", ".png", sep = ""))
+  dev.copy(png, paste("ARIMA_PNGs/", ticker, "(1) ", csv_name_start, " - Return_Time_Series", ".png", sep = ""))
   dev.off()
   
   
@@ -67,13 +72,13 @@ ARIMA_and_REG_Experimentation <- function(ticker, csv_name_start){
   ts_components$seasonal # compute the average of each month (on the detrended data) to get the seasonal component
   ts_components$random
   plot(ts_components)
-  dev.copy(png, paste("ARIMA_PNGs/",  ticker, "(2) "," - Time Series Decomposition", ".png", sep = ""))
+  dev.copy(png, paste("ARIMA_PNGs/",  ticker, "(2) ", csv_name_start," - Time Series Decomposition", ".png", sep = ""))
   dev.off()
   
   ts_components_random = ts_components$random
   random_Error = na.omit(ts_components_random)
   acf(random_Error, main = paste("Autocorrelation of Random Error -", ticker, sep = " "))
-  dev.copy(png, paste("ARIMA_PNGs/",  ticker, "(3) "," - ACF of Random Error", ".png", sep = ""))
+  dev.copy(png, paste("ARIMA_PNGs/",  ticker, "(3) ", csv_name_start," - ACF of Random Error", ".png", sep = ""))
   dev.off()
   
   ##---------------------------------------- ARIMA ----------------------------------------##
@@ -87,7 +92,7 @@ ARIMA_and_REG_Experimentation <- function(ticker, csv_name_start){
   # install.packages("ggfortify")
   library(ggfortify)
   ggtsdiag(arima)
-  dev.copy(png, paste("ARIMA_PNGs/",  ticker, "(4) "," - Random Error Fits", ".png", sep = ""))
+  dev.copy(png, paste("ARIMA_PNGs/",  ticker, "(4) ", csv_name_start," - Random Error Fits", ".png", sep = ""))
   dev.off()
   
   
@@ -103,7 +108,7 @@ ARIMA_and_REG_Experimentation <- function(ticker, csv_name_start){
   lines(target_ts_train, col = "blue")
   lines(time_series_fitted, col = "green")
   legend("topleft", legend=c("Training Target", "Fitted with Full ARIMA"),col=c("blue", "green"), lty=1:2, cex=0.8)
-  dev.copy(png, paste("ARIMA_PNGs/",  ticker, "(5) "," - Decomposition and ARIMA Training Fit", ".png", sep = ""))
+  dev.copy(png, paste("ARIMA_PNGs/",  ticker, "(5) ", csv_name_start," - Decomposition and ARIMA Training Fit", ".png", sep = ""))
   dev.off()
   
   ## Calculate Training Residuals on ARIMA Model with NO Additional Features ###
@@ -118,7 +123,7 @@ ARIMA_and_REG_Experimentation <- function(ticker, csv_name_start){
   
   
   
-  ##---------------------------------------- Forecasting ----------------------------------------##
+  ##---------------------------------------- Forecasting & Test Fit----------------------------------------##
   num_points_to_forecast = nrow(target_ts_test)
   num_points_to_forecast
   
@@ -148,7 +153,7 @@ ARIMA_and_REG_Experimentation <- function(ticker, csv_name_start){
   # lines(forecasted_forecast_full_horizon, col = "red")
   lines(constructed_forecast_full_horizon, col = "green")
   legend("topleft", legend=c("by Construction of ts - training set + forecasts",'True Data'), col=c("green", "blue"), lty=1:2, cex=0.8)
-  dev.copy(png, paste("ARIMA_PNGs/",  ticker, "(6) "," - Forecast on Test", ".png", sep = ""))
+  dev.copy(png, paste("ARIMA_PNGs/",  ticker, "(6) ", csv_name_start," - Forecast on Test", ".png", sep = ""))
   dev.off()
   
   
@@ -184,8 +189,13 @@ ARIMA_and_REG_Experimentation <- function(ticker, csv_name_start){
   summary(linreg)
   FIT_ON_resid_ARIMA_given_by_linreg = linreg$fitted.values # fitted values 
   
+  ### Stepwise Regression ###
+  # library(MASS)
+  # step <- stepAIC(linreg, direction="both")
+  # step$anova # display results
+  # 
   first_index_to_plot = which(!is.na(ts_components$trend),, TRUE)[1]
-  time_series_reconstructed =  subset(ts_components$trend, !is.na(ts_components$trend)) + subset(ts_components$seasonal, !is.na(ts_components$trend)) + as.vector(fitted_random_ARIMA) +  as.vector(FIT_ON_resid_ARIMA_given_by_linreg)
+  time_series_reconstructed =  subset(ts_components$trend, !is.na(ts_components$trend)) + subset(ts_components$seasonal, !is.na(ts_components$trend)) + as.vector(FIT_ON_resid_ARIMA_given_by_linreg) # as.vector(fitted_random_ARIMA) + 
   last_index_to_plot = first_index_to_plot + NROW(time_series_reconstructed)
   
   number_of_indices = last_index_to_plot[1] - first_index_to_plot[1]
@@ -196,10 +206,9 @@ ARIMA_and_REG_Experimentation <- function(ticker, csv_name_start){
   plot(as.vector(target_ts_train), col = 'blue', ylab = "returns", xlab = "time index", main = paste(main, "- Regression on ARIMA Residuals", sep = " "))
   lines(as.vector(target_ts_train), col = 'blue')
   lines(x, time_series_reconstructed, col = "red")
-  legend("topleft", legend=c("Arima with Regression on Residuals - Training Data", "Constructed Time Series - Training"), col=c("red", "green"), lty=1:2, cex=0.8)
-  dev.copy(png, paste("ARIMA_PNGs/", ticker, "(7) ", " - ARIMA Training Fit with Regression on Residuals", ".png", sep = ""))
+  legend("topleft", legend=c("Arima with Regression on Residuals - Training Data", "Constructed Time Series - Training"), col=c("red", "blue"), lty=1:2, cex=0.8)
+  dev.copy(png, paste("ARIMA_PNGs/", ticker, "(7) ", csv_name_start, " - ARIMA Training Fit with Regression on Residuals", ".png", sep = ""))
   dev.off()
-  
   
   
   
@@ -213,10 +222,11 @@ ARIMA_and_REG_Experimentation <- function(ticker, csv_name_start){
   training_arima_and_reg = c(mean(overall_fit_residuals_arima_and_regression_TRAIN^2))
   
   
+  ##---------------------------------------- Test Fit----------------------------------------##
   
   ## Calculate TESTING FIT Residuals on ARIMA Model with Additional Features ###
   pred_reg_on_resid = predict(linreg, target_data_test)
-  FIT = as.vector(constructed_forecast) + as.vector(pred_reg_on_resid)
+  FIT = as.vector(trend_forecast$mean) + as.vector(season_forecast) +  as.vector(pred_reg_on_resid)
   
   # Recomposition of TS
   overall_fit_residuals_arima_and_regression_TEST = as.vector(target_ts_test) - FIT
@@ -234,7 +244,7 @@ ARIMA_and_REG_Experimentation <- function(ticker, csv_name_start){
   lines(constructed_forecast, col = "red")
   lines(FIT, col = "green")
   legend("topleft", legend=c("True Test Data", "ARIMA", "ARIMA w/Regression"), col=c("blue", "red", "green"), lty=1:2, cex=0.8)
-  dev.copy(png, paste("ARIMA_PNGs/",  ticker, "(8) "," - ARIMA and Reg. Testing Fits", ".png", sep = ""))
+  dev.copy(png, paste("ARIMA_PNGs/",  ticker, "(8) ", csv_name_start," - ARIMA and Reg. Testing Fits", ".png", sep = ""))
   dev.off()
   
   print(paste("TRAINING, ARIMA ONLY:", as.character(training_arima_only)))
@@ -246,26 +256,26 @@ ARIMA_and_REG_Experimentation <- function(ticker, csv_name_start){
 }
 
 
-csv_name_start = "numeric_training_data_" 
+csv_name_start = "numeric_training_data_"
 results =  matrix( 0, nrow = NROW(ticker_vec)+1, ncol=4+1)
-results[1,] = c("", "TRAINING, ARIMA ONLY", "TRAINING, ARIMA AND REG", "TESTING, ARIMA ONLY", "TESTING, ARIMA AND REG")
+results[1,] = c("", "Training, ARIMA, Numeric", "Training, ARIMA and Regression, Numeric", "Testing, ARIMA, Numeric", "Testing, ARIMA and Regression, Numeric")
 for (i in 1:NROW(ticker_vec)){
   ticker = ticker_vec[i]
   results[i+1,1] = ticker
   results[i+1,2:NCOL(results)] = ARIMA_and_REG_Experimentation(ticker, csv_name_start)
 }
-write.table(results, file = "ARIMA_PNGs/Numeric_Results.csv", sep = ",", col.names = FALSE)
+write.table(results, file = "ARIMA_PNGs/Numeric_Results.csv", sep = ",", col.names = FALSE, row.names=FALSE)
 
 
-# csv_name_start = "numeric_and_text_training_data_" 
-# results =  matrix( 0, nrow = NROW(ticker_vec)+1, ncol=4+1)
-# results[1,] = c("", "TRAINING, ARIMA ONLY", "TRAINING, ARIMA AND REG", "TESTING, ARIMA ONLY", "TESTING, ARIMA AND REG")
-# for (i in 1:NROW(ticker_vec)){
-#   ticker = ticker_vec[i]
-#   results[i+1,1] = ticker
-#   results[i+1,2:NCOL(results)] = ARIMA_and_REG_Experimentation(ticker, csv_name_start)
-# }
-# write.table(results, file = "ARIMA_PNGs/Numeric_and_Text_Results.csv", sep = ",", col.names = FALSE)
+csv_name_start = "numeric_and_text_training_data_"
+results =  matrix( 0, nrow = NROW(ticker_vec)+1, ncol=4+1)
+results[1,] = c("", "Training, ARIMA, Numeric and Text", "Training, ARIMA and Regression, Numeric and Text", "Testing, ARIMA, Numeric and Text", "Testing, ARIMA and Regression, Numeric and Text")
+for (i in 1:NROW(ticker_vec)){
+  ticker = ticker_vec[i]
+  results[i+1,1] = ticker
+  results[i+1,2:NCOL(results)] = ARIMA_and_REG_Experimentation(ticker, csv_name_start)
+}
+write.table(results, file = "ARIMA_PNGs/Numeric_and_Text_Results.csv", sep = ",", col.names = FALSE, row.names=FALSE)
 
 
 
