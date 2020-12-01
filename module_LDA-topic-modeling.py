@@ -45,12 +45,12 @@ print(words)
 print('\n\n tokenized and lemmatized document: ')
 print(preprocess(doc_sample))
 
-#%% Preprocess the titles of all the articles
-processed_titles = data['title'].map(preprocess)
-processed_titles.head
+#%% Preprocess the articles of all the articles
+processed_articles = data['text'].map(preprocess)
+processed_articles.head
 
 #%% Bag of words on the data set - Dictionary of 10 most common words
-dictionary = gensim.corpora.Dictionary(processed_titles)
+dictionary = gensim.corpora.Dictionary(processed_articles)
 count = 0
 for k, v in dictionary.iteritems():
     print(k, v)
@@ -62,7 +62,7 @@ for k, v in dictionary.iteritems():
 dictionary.filter_extremes(no_below=15, no_above=0.5, keep_n=100000)        
 
 #%% Gensim doc2bow
-bow_corpus = [dictionary.doc2bow(doc) for doc in processed_titles]
+bow_corpus = [dictionary.doc2bow(doc) for doc in processed_articles]
 
 #%% TF-IDF
 tfidf = models.TfidfModel(bow_corpus)
@@ -82,7 +82,7 @@ for idx, topic in lda_model_tfidf.print_topics(-1):
     
 #%% Performance evaluation by classifying sample document using LDA Bag of Words model
 train_index = 0
-processed_titles[0]
+processed_articles[0]
 
 for index, score in sorted(lda_model[bow_corpus[train_index]], key=lambda tup: -1*tup[1]):
     print("\nScore: {}\t \nTopic: {}".format(score, lda_model.print_topic(index, 10)))
