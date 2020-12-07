@@ -32,7 +32,7 @@ def tcn(X_train, y_train, X_val, y_val, X_test, y_test):
     
     # INPUT LAYER
 #    model.add(Conv1D(filters=5, kernel_size=3, padding='causal', activation='relu',input_shape = (batch_size, n_timesteps, n_features))) 
-    model.add(Conv1D(filters=5, kernel_size=3, padding='causal', activation='relu',input_shape = (n_features,1))) 
+    model.add(Conv1D(filters=12, kernel_size=3, padding='causal', activation='relu',input_shape = (n_features,1))) 
     model.add(MaxPooling1D())
     model.add(Dense(32, activation='relu'))
     model.add(Dropout(0.5))

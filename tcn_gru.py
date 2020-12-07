@@ -26,7 +26,7 @@ def tcn_gru(X_train, y_train, X_val, y_val, X_test, y_test):
     model.add(Dropout(0.5))
     
     # The output of GRU will be a 3D tensor of shape (batch_size, timesteps, 256)
-     model.add(GRU(256, return_sequences=True, input_dim = len(X_train.columns)))
+    model.add(GRU(256, return_sequences=True, input_dim = len(X_train.columns)))
 
     model.add(Dense(32, activation='relu')) 
     model.add(Dropout(0.5))

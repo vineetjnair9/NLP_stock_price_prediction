@@ -9,9 +9,9 @@ from tcn_lstm import *
 
 os.chdir(r'C:\Users\vinee\OneDrive - Massachusetts Institute of Technology\MIT\Fall 2020\6.867\Project\Final Data by Morgan')
 
-ticker = 'AMZN' 
+ticker = 'ALL_TICKERS' 
 data = 'numerical'
-nn_type = tcn_rnn
+nn_type = tcn_lstm
 sequential = True
-onehot = False
+onehot = True
 run_network(ticker,data,nn_type,sequential,onehot)  
