@@ -25,8 +25,9 @@ def tcn_lstm(X_train, y_train, X_val, y_val, X_test, y_test):
     model.add(Dense(32, activation='relu'))
     model.add(Dropout(0.5))
     
-    # LSTM layer with 128 internal units
+    # LSTM layer with 16 internal units
     model.add(LSTM(16,return_sequences=True))
+    # Recurrent dropout, bidirectional
     
     model.add(Dense(32, activation='relu'))
     model.add(Dropout(0.5))

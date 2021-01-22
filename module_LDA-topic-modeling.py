@@ -15,7 +15,7 @@ import nltk
 nltk.download('wordnet')
 
 #%% Load dataset
-data = pd.read_csv(r"C:\Users\vinee\OneDrive - Massachusetts Institute of Technology\MIT\Fall 2020\6.867\Project\amzn_title_embs_per_art.csv",usecols = ["title","text"])
+data = pd.read_csv(r"C:\Users\vinee\OneDrive - Massachusetts Institute of Technology\MIT\Fall 2020\6.867\Project\amzn_text_embs_per_art.csv",usecols = ["title","text"])
 data['index'] = data.index
 
 #%% Pre-processing text
@@ -28,9 +28,6 @@ def preprocess(text):
         if token not in gensim.parsing.preprocessing.STOPWORDS and len(token) > 3:
             result.append(lemmatize_stemming(token))
     return result
-
-#%%
-data.iloc[0][1]
 
 #%% Preview sample article text after preprocessing
 
@@ -45,11 +42,17 @@ print(words)
 print('\n\n tokenized and lemmatized document: ')
 print(preprocess(doc_sample))
 
-#%% Preprocess the articles of all the articles
+#%% Preprocess the text of all the articles
 processed_articles = data['text'].map(preprocess)
 processed_articles.head
 
-#%% Bag of words on the data set - Dictionary of 10 most common words
+#%% Preprocess all titles
+processed_titles = data['title'].map(preprocess)
+processed_titles.head
+
+
+#%% TEXT
+# Bag of words on the data set - Dictionary of 10 most common words
 dictionary = gensim.corpora.Dictionary(processed_articles)
 count = 0
 for k, v in dictionary.iteritems():
@@ -77,8 +80,10 @@ for idx, topic in lda_model.print_topics(-1):
 
 #%% Running LDA using TF-IDF
 lda_model_tfidf = gensim.models.LdaMulticore(corpus_tfidf, num_topics=10, id2word=dictionary, passes=2, workers=4)
+
+#%%
 for idx, topic in lda_model_tfidf.print_topics(-1):
-    print('Topic: {} Word: {}'.format(idx, topic))
+    print('Topic: {} \nWords: {}'.format(idx, topic))
     
 #%% Performance evaluation by classifying sample document using LDA Bag of Words model
 train_index = 0

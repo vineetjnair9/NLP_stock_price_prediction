@@ -96,9 +96,9 @@ def run_network(ticker,data,nn_type,sequential,onehot):
     inputs = inputs_parsed_text
 
   if (sequential):
-      train, val, test = split_train_val_test(inputs, train=0.8, val=0.1)
-  else:
       train, val, test = split_train_val_test_seq(inputs, train=0.8, val=0.1)
+  else:
+      train, val, test = split_train_val_test(inputs, train=0.8, val=0.1)
       
   X_train = train[train.columns.difference(['TARGET'])]
   y_train = train['TARGET']

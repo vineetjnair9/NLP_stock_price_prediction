@@ -10,7 +10,7 @@ from tcn_lstm import *
 os.chdir(r'C:\Users\vinee\OneDrive - Massachusetts Institute of Technology\MIT\Fall 2020\6.867\Project\Final Data by Morgan')
 
 ticker = 'ALL_TICKERS' 
-data = 'numerical'
+data = 'inputs_parsed_text'
 nn_type = tcn_lstm
 sequential = True
 onehot = True
