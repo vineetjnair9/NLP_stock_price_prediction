@@ -1,6 +1,1 @@
-# 6-867_Project
-
-
-if the file is a module, use "module_XXX.py"
-
-if the file does soemthing, use "run_XXX.py"
+# Stock price prediction based on publicly available textual data, comparing traditional statistical methods, natural language processing, and neural networks.
